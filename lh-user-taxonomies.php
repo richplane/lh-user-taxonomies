@@ -243,20 +243,27 @@ class LH_User_Taxonomies_plugin {
 	 * 
 	 * @param Integer $user_id	- The ID of the user to update
 	 */
-public function save_profile($user_id) {
+        public function save_profile($user_id) {
 		foreach(self::$taxonomies as $key=>$taxonomy) {
 			// Check the current user can edit this user and assign terms for this taxonomy
-			if(!current_user_can('edit_user', $user_id) && current_user_can($taxonomy->cap->assign_terms)) return false;
-				if (isset($_POST[$key])) {
-					if (is_array($_POST[$key])){
-						$term = $_POST[$key];
-						wp_set_object_terms($user_id, $term, $key, false);
-					} else {
-						$term	= esc_attr($_POST[$key]);
-						wp_set_object_terms($user_id, array($term), $key, false);
-					}
-				}
-				// Save the data
+			if (
+				!current_user_can('edit_user', $user_id) && 
+				current_user_can($taxonomy->cap->assign_terms)
+			) {
+				return false;
+			}
+			
+			if (empty($_POST[$key])) {
+				$_POST[$key] = null;
+			}
+			if (is_array($_POST[$key])){
+				$term = $_POST[$key];
+				wp_set_object_terms($user_id, $term, $key, false);
+			} else {
+				$term	= esc_attr($_POST[$key]);
+				wp_set_object_terms($user_id, array($term), $key, false);
+			}
+			// Save the data
 			clean_object_term_cache($user_id, $key);
 		}
 	}
@@ -276,22 +283,23 @@ public function save_profile($user_id) {
 	 * show_admin_column
 	 */
 	public function lh_user_taxonomies_add_user_id_column($columns) {
-$args=array(
-  'object_type' => array('user'),
-'show_admin_column' => true
-);
-$taxonomies = get_taxonomies( $args, "objects");
-foreach ($taxonomies as $taxonomy) {
-$columns[$taxonomy->name] = $taxonomy->labels->name;
-}
-    return $columns;
-}
+		$args=array(
+  			'object_type' => array('user'),
+			'show_admin_column' => true
+		);
+		$taxonomies = get_taxonomies( $args, "objects");
+		foreach ($taxonomies as $taxonomy) {
+			$columns[$taxonomy->name] = $taxonomy->labels->name;
+		}
+		return $columns;
+	}
+	
 	/**
 	 * Just a private function to
 	 * populate column content
 	 */
 	private function lh_user_taxonomies_get_user_taxonomies($user, $taxonomy, $page = null) {
-$terms = wp_get_object_terms( $user, $taxonomy);
+		$terms = wp_get_object_terms( $user, $taxonomy);
 		if(empty($terms)) { return false; }
 		$in = array();
 		foreach($terms as $term) {
