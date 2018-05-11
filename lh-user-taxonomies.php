@@ -207,7 +207,7 @@ class LH_User_Taxonomies_plugin {
 		
 		foreach(self::$taxonomies as $key=>$taxonomy):
 			// Check the current user can assign terms for this taxonomy
-			//if(!current_user_can($taxonomy->cap->assign_terms)) continue;
+			if(!current_user_can($taxonomy->cap->assign_terms)) continue;
 			// Get all the terms in this taxonomy
 			$terms		= get_terms($key, array('hide_empty'=>false));
 			$stack 		= wp_list_pluck( wp_get_object_terms( $user->ID, $key ), 'slug' );
